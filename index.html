@@ -60,17 +60,6 @@
         let audioContext = null;
         let oscillator1, oscillator2, gainNode;
 
-        // Ensure AudioContext resumes on first user interaction
-        let hasUserInteracted = false;
-        document.body.addEventListener('click', () => {
-            if (!hasUserInteracted) {
-                if (audioContext && audioContext.state === 'suspended') {
-                    audioContext.resume();
-                }
-                hasUserInteracted = true; // Prevent multiple resumes
-            }
-        });
-
         function drawSineWave(wavelength1, wavelength2) {
             // Clear both canvases
             ctxSine.clearRect(0, 0, sineCanvas.width, sineCanvas.height);
@@ -92,7 +81,7 @@
             ctxSuper.strokeStyle = '#28A745'; // Green for superposition
             drawSuperposition(ctxSuper, wavelength1, wavelength2, 50);
 
-            // Calculate modulation frequency and update background color
+            // Update background color based on modulation frequency
             updateBackgroundColor(wavelength1, wavelength2);
         }
 
@@ -140,8 +129,9 @@
             const hue = Math.min(modulationFrequency * 1000, 360);
             document.body.style.backgroundColor = `hsl(${hue}, 50%, 70%)`;
 
-            if (oscillator1 && oscillator2) {
-                oscillator1.frequency.setValueAtTime(frequency1 * 4400 , audioContext.currentTime);
+            if (oscillator1 && oscillator2 && audioContext) {
+                // Update frequencies if sound is active
+                oscillator1.frequency.setValueAtTime(frequency1 * 4400, audioContext.currentTime);
                 oscillator2.frequency.setValueAtTime(frequency2 * 4400, audioContext.currentTime);
             }
         }
@@ -155,6 +145,7 @@
         }
 
         async function startSound() {
+            // Create the audio context and oscillators only when user presses Play Sound
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 oscillator1 = audioContext.createOscillator();
@@ -173,7 +164,7 @@
                 await audioContext.resume();
             }
 
-            updateWave(); // Sync frequencies with sliders
+            updateWave(); // Ensure frequencies match the current slider values
         }
 
         function stopSound() {
