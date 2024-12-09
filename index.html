@@ -141,8 +141,8 @@
             document.body.style.backgroundColor = `hsl(${hue}, 50%, 70%)`;
 
             if (oscillator1 && oscillator2) {
-                oscillator1.frequency.setValueAtTime(frequency1 * 440, audioContext.currentTime);
-                oscillator2.frequency.setValueAtTime(frequency2 * 440, audioContext.currentTime);
+                oscillator1.frequency.setValueAtTime(frequency1 * 440 *20, audioContext.currentTime);
+                oscillator2.frequency.setValueAtTime(frequency2 * 440 *20, audioContext.currentTime);
             }
         }
 
