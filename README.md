@@ -16,7 +16,7 @@ This project visualizes the superposition of two sine waves and allows you to he
 4. Click "Stop Sound" to stop the audio.
 
 ## Live Demo
-[View the Live Demo](https://jorge-ofarrill.github.io/sine-wave-sound/) 
+[View the Live Demo](https://jorge-physics.github.io/sine-wave-sound/) 
 
 ## License
 This project is open-source and available under the MIT License.
