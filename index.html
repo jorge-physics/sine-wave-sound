@@ -60,6 +60,17 @@
         let audioContext = null;
         let oscillator1, oscillator2, gainNode;
 
+        // Ensure AudioContext resumes on first user interaction
+        let hasUserInteracted = false;
+        document.body.addEventListener('click', () => {
+            if (!hasUserInteracted) {
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                hasUserInteracted = true; // Prevent multiple resumes
+            }
+        });
+
         function drawSineWave(wavelength1, wavelength2) {
             // Clear both canvases
             ctxSine.clearRect(0, 0, sineCanvas.width, sineCanvas.height);
@@ -130,8 +141,8 @@
             document.body.style.backgroundColor = `hsl(${hue}, 50%, 70%)`;
 
             if (oscillator1 && oscillator2) {
-                oscillator1.frequency.setValueAtTime(frequency1 * 4400, audioContext.currentTime);
-                oscillator2.frequency.setValueAtTime(frequency2 * 4400, audioContext.currentTime);
+                oscillator1.frequency.setValueAtTime(frequency1 * 440, audioContext.currentTime);
+                oscillator2.frequency.setValueAtTime(frequency2 * 440, audioContext.currentTime);
             }
         }
 
@@ -143,7 +154,7 @@
             drawSineWave(wavelength1, wavelength2);
         }
 
-        function startSound() {
+        async function startSound() {
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 oscillator1 = audioContext.createOscillator();
@@ -157,7 +168,12 @@
                 oscillator1.start();
                 oscillator2.start();
             }
-            updateWave(); // Ensure the frequencies match the current slider values
+
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+
+            updateWave(); // Sync frequencies with sliders
         }
 
         function stopSound() {
