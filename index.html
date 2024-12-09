@@ -136,7 +136,7 @@
         function updateBackgroundColor(wavelength1, wavelength2) {
             const frequency1 = 1 / wavelength1;
             const frequency2 = 1 / wavelength2;
-            const modulationFrequency = Math.abs(frequency1 - frequency2);
+            const modulationFrequency = Math.abs(1/(frequency1 - frequency2));
             const hue = Math.min(modulationFrequency * 1000, 360);
             document.body.style.backgroundColor = `hsl(${hue}, 50%, 70%)`;
 
