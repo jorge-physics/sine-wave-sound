@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modulated Sine Wave Superposition with Sound</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            transition: background-color 0.5s ease;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin-top: 20px;
+        }
+        .slider-container {
+            margin-top: 20px;
+        }
+        input[type="range"] {
+            width: 80%;
+        }
+        .label {
+            font-size: 16px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Modulated Sine Wave Superposition with Sound</h1>
+    <p>Adjust the sliders to change the wavelengths of two sine waves:</p>
+
+    <div class="slider-container">
+        <input type="range" id="wavelengthSlider1" min="10" max="300" value="50" oninput="updateWave()" />
+        <div class="label">Wave 1 Wavelength: <span id="wavelengthLabel1">50</span> px</div>
+    </div>
+    <div class="slider-container">
+        <input type="range" id="wavelengthSlider2" min="10" max="300" value="100" oninput="updateWave()" />
+        <div class="label">Wave 2 Wavelength: <span id="wavelengthLabel2">100</span> px</div>
+    </div>
+
+    <canvas id="sineCanvas" width="1600" height="200"></canvas>
+    <p>Superposition of Wave 1 and Wave 2:</p>
+    <canvas id="superpositionCanvas" width="1600" height="200"></canvas>
+    <button onclick="startSound()">Play Sound</button>
+    <button onclick="stopSound()">Stop Sound</button>
+
+    <script>
+        const sineCanvas = document.getElementById('sineCanvas');
+        const superCanvas = document.getElementById('superpositionCanvas');
+        const ctxSine = sineCanvas.getContext('2d');
+        const ctxSuper = superCanvas.getContext('2d');
+        const slider1 = document.getElementById('wavelengthSlider1');
+        const slider2 = document.getElementById('wavelengthSlider2');
+        const label1 = document.getElementById('wavelengthLabel1');
+        const label2 = document.getElementById('wavelengthLabel2');
+
+        let audioContext = null;
+        let oscillator1, oscillator2, gainNode;
+
+        function drawSineWave(wavelength1, wavelength2) {
+            // Clear both canvases
+            ctxSine.clearRect(0, 0, sineCanvas.width, sineCanvas.height);
+            ctxSuper.clearRect(0, 0, superCanvas.width, superCanvas.height);
+
+            // Draw the axes for both canvases
+            drawAxes(ctxSine, sineCanvas);
+            drawAxes(ctxSuper, superCanvas);
+
+            // Draw the first sine wave
+            ctxSine.strokeStyle = '#007BFF';
+            drawWave(ctxSine, wavelength1, 50);
+
+            // Draw the second sine wave
+            ctxSine.strokeStyle = '#FF5733';
+            drawWave(ctxSine, wavelength2, 50);
+
+            // Draw the superposition
+            ctxSuper.strokeStyle = '#28A745'; // Green for superposition
+            drawSuperposition(ctxSuper, wavelength1, wavelength2, 50);
+
+            // Calculate modulation frequency and update background color
+            updateBackgroundColor(wavelength1, wavelength2);
+        }
+
+        function drawAxes(context, canvas) {
+            context.strokeStyle = '#333';
+            context.beginPath();
+            context.moveTo(0, canvas.height / 2);
+            context.lineTo(canvas.width, canvas.height / 2); // x-axis
+            context.moveTo(canvas.width / 2, 0);
+            context.lineTo(canvas.width / 2, canvas.height); // y-axis
+            context.stroke();
+        }
+
+        function drawWave(context, wavelength, amplitude) {
+            context.beginPath();
+            for (let x = 0; x < sineCanvas.width; x++) {
+                const y = sineCanvas.height / 2 + Math.sin((x * Math.PI) / wavelength) * amplitude;
+                if (x === 0) {
+                    context.moveTo(x, y);
+                } else {
+                    context.lineTo(x, y);
+                }
+            }
+            context.stroke();
+        }
+
+        function drawSuperposition(context, wavelength1, wavelength2, amplitude) {
+            context.beginPath();
+            for (let x = 0; x < superCanvas.width; x++) {
+                const y = superCanvas.height / 2 +
+                    (Math.sin((x * Math.PI) / wavelength1) + Math.sin((x * Math.PI) / wavelength2)) * amplitude / 2;
+                if (x === 0) {
+                    context.moveTo(x, y);
+                } else {
+                    context.lineTo(x, y);
+                }
+            }
+            context.stroke();
+        }
+
+        function updateBackgroundColor(wavelength1, wavelength2) {
+            const frequency1 = 1 / wavelength1;
+            const frequency2 = 1 / wavelength2;
+            const modulationFrequency = Math.abs(frequency1 - frequency2);
+            const hue = Math.min(modulationFrequency * 1000, 360);
+            document.body.style.backgroundColor = `hsl(${hue}, 50%, 70%)`;
+
+            if (oscillator1 && oscillator2) {
+                oscillator1.frequency.setValueAtTime(frequency1 * 4400, audioContext.currentTime);
+                oscillator2.frequency.setValueAtTime(frequency2 * 4400, audioContext.currentTime);
+            }
+        }
+
+        function updateWave() {
+            const wavelength1 = parseInt(slider1.value);
+            const wavelength2 = parseInt(slider2.value);
+            label1.textContent = wavelength1;
+            label2.textContent = wavelength2;
+            drawSineWave(wavelength1, wavelength2);
+        }
+
+        function startSound() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                oscillator1 = audioContext.createOscillator();
+                oscillator2 = audioContext.createOscillator();
+                gainNode = audioContext.createGain();
+
+                oscillator1.connect(gainNode);
+                oscillator2.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator1.start();
+                oscillator2.start();
+            }
+            updateWave(); // Ensure the frequencies match the current slider values
+        }
+
+        function stopSound() {
+            if (audioContext) {
+                oscillator1.stop();
+                oscillator2.stop();
+                audioContext.close();
+                audioContext = null;
+            }
+        }
+
+        // Initialize the wave visualization
+        drawSineWave(slider1.value, slider2.value);
+    </script>
+
+</body>
+</html>
