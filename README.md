@@ -1,6 +1,6 @@
 # sine-wave-sound
 sine-wave-sound
-# Sine Wave Superposition with Sound
+# Wave Interference Demo
 
 This project visualizes the superposition of two sine waves and allows you to hear their combined frequencies. Adjust the sliders to change the wavelengths of the waves, and observe the background color and tone change based on the modulation frequency.
 
